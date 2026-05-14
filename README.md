@@ -1,3 +1,4 @@
+
 # TaifaExchange
 
 Exchange and request-boundary service for Taifa Republic, a synthetic digital public infrastructure range.
@@ -6,7 +7,7 @@ TaifaExchange owns route policies, authorization decisions, actor-context valida
 
 ## Current status
 
-Batch 1 provides a bootable HTTP service scaffold.
+Batch 2 provides PostgreSQL readiness, schema migrations, and audit outbox support.
 
 Implemented:
 
@@ -17,4 +18,10 @@ correlation IDs
 request logging
 panic recovery
 graceful shutdown
+PostgreSQL connection pool
+database readiness
+exchange schema migration
+audit outbox insert helper
 ```
+
+vvvv

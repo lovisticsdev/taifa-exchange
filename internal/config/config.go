@@ -2,6 +2,7 @@ package config
 
 import (
 	"os"
+	"strconv"
 	"time"
 )
 
@@ -9,6 +10,7 @@ type Config struct {
 	ServiceName string
 	Environment string
 	HTTP        HTTPConfig
+	Database    DatabaseConfig
 }
 
 type HTTPConfig struct {
@@ -17,6 +19,13 @@ type HTTPConfig struct {
 	WriteTimeout    time.Duration
 	IdleTimeout     time.Duration
 	ShutdownTimeout time.Duration
+}
+
+type DatabaseConfig struct {
+	DSN            string
+	MinConns       int32
+	MaxConns       int32
+	ConnectTimeout time.Duration
 }
 
 func Load() Config {
@@ -29,6 +38,12 @@ func Load() Config {
 			WriteTimeout:    envDuration("TAIFA_EXCHANGE_HTTP_WRITE_TIMEOUT", 10*time.Second),
 			IdleTimeout:     envDuration("TAIFA_EXCHANGE_HTTP_IDLE_TIMEOUT", 60*time.Second),
 			ShutdownTimeout: envDuration("TAIFA_EXCHANGE_HTTP_SHUTDOWN_TIMEOUT", 10*time.Second),
+		},
+		Database: DatabaseConfig{
+			DSN:            envString("TAIFA_EXCHANGE_DATABASE_DSN", ""),
+			MinConns:       envInt32("TAIFA_EXCHANGE_DATABASE_MIN_CONNS", 1),
+			MaxConns:       envInt32("TAIFA_EXCHANGE_DATABASE_MAX_CONNS", 5),
+			ConnectTimeout: envDuration("TAIFA_EXCHANGE_DATABASE_CONNECT_TIMEOUT", 5*time.Second),
 		},
 	}
 }
@@ -54,4 +69,18 @@ func envDuration(key string, fallback time.Duration) time.Duration {
 	}
 
 	return parsed
+}
+
+func envInt32(key string, fallback int32) int32 {
+	value := os.Getenv(key)
+	if value == "" {
+		return fallback
+	}
+
+	parsed, err := strconv.ParseInt(value, 10, 32)
+	if err != nil {
+		return fallback
+	}
+
+	return int32(parsed)
 }
