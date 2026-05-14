@@ -21,7 +21,7 @@ func NewRepository(pool *pgxpool.Pool) *Repository {
 	}
 }
 
-func (r *Repository) FindActiveByRoute(ctx context.Context, input LookupInput) (*Policy, error) {
+func (r *Repository) FindByRoute(ctx context.Context, input LookupInput) (*Policy, error) {
 	if r == nil || r.pool == nil {
 		return nil, fmt.Errorf("policy repository is not configured")
 	}
@@ -45,7 +45,6 @@ func (r *Repository) FindActiveByRoute(ctx context.Context, input LookupInput) (
 		  AND method = $2
 		  AND route_pattern = $3
 		  AND operation = $4
-		  AND status = 'ACTIVE'
 		LIMIT 1
 	`
 

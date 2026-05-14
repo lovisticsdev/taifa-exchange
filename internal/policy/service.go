@@ -25,7 +25,7 @@ func (s *Service) Evaluate(ctx context.Context, input AuthorizationInput) (Evalu
 
 	lookupInput := input.LookupInput()
 
-	foundPolicy, err := s.repository.FindActiveByRoute(ctx, lookupInput)
+	foundPolicy, err := s.repository.FindByRoute(ctx, lookupInput)
 	if err != nil {
 		if errors.Is(err, ErrPolicyNotFound) {
 			return s.evaluator.Evaluate(EvaluationInput{

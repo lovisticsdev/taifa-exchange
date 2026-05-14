@@ -7,15 +7,14 @@ TaifaExchange owns route policies, authorization decisions, actor-context valida
 
 ## Current status
 
-Batch 4 provides the internal policy model, repository, evaluator, service, and evaluator unit tests.
+Batch 5 provides the authorization decision API.
 
 Implemented:
 
 ```text
-
-
 GET /healthz
 GET /readyz
+POST /api/v1/exchange/authorize
 correlation IDs
 request logging
 panic recovery
@@ -32,4 +31,6 @@ policy repository
 policy evaluator
 policy service
 policy evaluator unit tests
+authorization decision persistence
+authorization audit events
 ```

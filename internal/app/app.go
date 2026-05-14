@@ -12,8 +12,10 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"taifa-exchange/internal/config"
+	exchangeapi "taifa-exchange/internal/exchange"
 	"taifa-exchange/internal/platform/httpserver"
 	"taifa-exchange/internal/platform/postgres"
+	"taifa-exchange/internal/policy"
 	"taifa-exchange/internal/taifaid"
 )
 
@@ -121,6 +123,19 @@ func New(cfg config.Config, logger *slog.Logger) (*App, error) {
 			},
 		})
 	})
+
+	policyRepository := policy.NewRepository(dbPool)
+	policyService := policy.NewService(policyRepository)
+
+	exchangeRepository := exchangeapi.NewRepository(dbPool)
+	exchangeService := exchangeapi.NewService(
+		exchangeRepository,
+		policyService,
+		taifaIDClient,
+	)
+	exchangeHandler := exchangeapi.NewHandler(exchangeService, logger)
+
+	exchangeapi.RegisterRoutes(router, exchangeHandler)
 
 	server := httpserver.New(httpserver.Config{
 		Addr:         cfg.HTTP.Addr,
