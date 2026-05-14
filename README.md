@@ -7,11 +7,13 @@ TaifaExchange owns route policies, authorization decisions, actor-context valida
 
 ## Current status
 
-Batch 3 provides the TaifaID client and upstream readiness integration.
+Batch 4 provides the internal policy model, repository, evaluator, service, and evaluator unit tests.
 
 Implemented:
 
 ```text
+
+
 GET /healthz
 GET /readyz
 correlation IDs
@@ -25,4 +27,9 @@ audit outbox insert helper
 TaifaID readiness client
 TaifaID actor-context resolution client
 TaifaID organization-capability client
+policy model
+policy repository
+policy evaluator
+policy service
+policy evaluator unit tests
 ```
