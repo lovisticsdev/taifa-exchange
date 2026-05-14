@@ -12,6 +12,7 @@ type Config struct {
 	HTTP        HTTPConfig
 	Database    DatabaseConfig
 	TaifaID     TaifaIDConfig
+	Seed        SeedConfig
 }
 
 type HTTPConfig struct {
@@ -31,6 +32,10 @@ type DatabaseConfig struct {
 
 type TaifaIDConfig struct {
 	BaseURL string
+	Timeout time.Duration
+}
+
+type SeedConfig struct {
 	Timeout time.Duration
 }
 
@@ -57,6 +62,9 @@ func Load() Config {
 				"TAIFA_EXCHANGE_TAIFA_ID_TIMEOUT",
 				10*time.Second,
 			),
+		},
+		Seed: SeedConfig{
+			Timeout: envDuration("TAIFA_EXCHANGE_SEED_TIMEOUT", 5*time.Minute),
 		},
 	}
 }
