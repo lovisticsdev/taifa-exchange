@@ -14,13 +14,15 @@ import (
 	"taifa-exchange/internal/config"
 	"taifa-exchange/internal/platform/httpserver"
 	"taifa-exchange/internal/platform/postgres"
+	"taifa-exchange/internal/taifaid"
 )
 
 type App struct {
-	cfg        config.Config
-	logger     *slog.Logger
-	dbPool     *pgxpool.Pool
-	httpServer *http.Server
+	cfg           config.Config
+	logger        *slog.Logger
+	dbPool        *pgxpool.Pool
+	taifaIDClient *taifaid.Client
+	httpServer    *http.Server
 }
 
 func New(cfg config.Config, logger *slog.Logger) (*App, error) {
@@ -43,6 +45,11 @@ func New(cfg config.Config, logger *slog.Logger) (*App, error) {
 		dbPool = pool
 	}
 
+	var taifaIDClient *taifaid.Client
+	if cfg.TaifaID.BaseURL != "" {
+		taifaIDClient = taifaid.NewClient(cfg.TaifaID.BaseURL, cfg.TaifaID.Timeout)
+	}
+
 	router := chi.NewRouter()
 
 	router.Use(httpserver.CorrelationIDMiddleware)
@@ -62,6 +69,7 @@ func New(cfg config.Config, logger *slog.Logger) (*App, error) {
 		statusCode := http.StatusOK
 		status := "ok"
 		databaseStatus := "not_configured"
+		taifaIDStatus := "not_configured"
 
 		if dbPool != nil {
 			pingCtx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
@@ -76,13 +84,40 @@ func New(cfg config.Config, logger *slog.Logger) (*App, error) {
 			}
 		}
 
+		if taifaIDClient != nil && taifaIDClient.IsConfigured() {
+			timeout := cfg.TaifaID.Timeout
+			if timeout <= 0 {
+				timeout = 2 * time.Second
+			}
+
+			readyCtx, cancel := context.WithTimeout(r.Context(), timeout)
+			defer cancel()
+
+			_, err := taifaIDClient.Ready(
+				readyCtx,
+				httpserver.CorrelationIDFromContext(r.Context()),
+			)
+			if err != nil {
+				statusCode = http.StatusServiceUnavailable
+				status = "degraded"
+				taifaIDStatus = "unavailable"
+				logger.Warn(
+					"taifa-id readiness check failed",
+					"error", err,
+					"correlation_id", httpserver.CorrelationIDFromContext(r.Context()),
+				)
+			} else {
+				taifaIDStatus = "ok"
+			}
+		}
+
 		httpserver.WriteJSON(w, r, statusCode, map[string]any{
 			"correlation_id": httpserver.CorrelationIDFromContext(r.Context()),
 			"status":         status,
 			"service":        cfg.ServiceName,
 			"dependencies": map[string]string{
 				"database": databaseStatus,
-				"taifa_id": "not_configured",
+				"taifa_id": taifaIDStatus,
 			},
 		})
 	})
@@ -95,10 +130,11 @@ func New(cfg config.Config, logger *slog.Logger) (*App, error) {
 	}, router)
 
 	return &App{
-		cfg:        cfg,
-		logger:     logger,
-		dbPool:     dbPool,
-		httpServer: server,
+		cfg:           cfg,
+		logger:        logger,
+		dbPool:        dbPool,
+		taifaIDClient: taifaIDClient,
+		httpServer:    server,
 	}, nil
 }
 

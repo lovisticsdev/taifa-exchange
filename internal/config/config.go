@@ -11,6 +11,7 @@ type Config struct {
 	Environment string
 	HTTP        HTTPConfig
 	Database    DatabaseConfig
+	TaifaID     TaifaIDConfig
 }
 
 type HTTPConfig struct {
@@ -26,6 +27,11 @@ type DatabaseConfig struct {
 	MinConns       int32
 	MaxConns       int32
 	ConnectTimeout time.Duration
+}
+
+type TaifaIDConfig struct {
+	BaseURL string
+	Timeout time.Duration
 }
 
 func Load() Config {
@@ -44,6 +50,13 @@ func Load() Config {
 			MinConns:       envInt32("TAIFA_EXCHANGE_DATABASE_MIN_CONNS", 1),
 			MaxConns:       envInt32("TAIFA_EXCHANGE_DATABASE_MAX_CONNS", 5),
 			ConnectTimeout: envDuration("TAIFA_EXCHANGE_DATABASE_CONNECT_TIMEOUT", 5*time.Second),
+		},
+		TaifaID: TaifaIDConfig{
+			BaseURL: envString("TAIFA_EXCHANGE_TAIFA_ID_BASE_URL", ""),
+			Timeout: envDuration(
+				"TAIFA_EXCHANGE_TAIFA_ID_TIMEOUT",
+				10*time.Second,
+			),
 		},
 	}
 }

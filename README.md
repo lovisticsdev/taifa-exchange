@@ -7,7 +7,7 @@ TaifaExchange owns route policies, authorization decisions, actor-context valida
 
 ## Current status
 
-Batch 2 provides PostgreSQL readiness, schema migrations, and audit outbox support.
+Batch 3 provides the TaifaID client and upstream readiness integration.
 
 Implemented:
 
@@ -22,6 +22,7 @@ PostgreSQL connection pool
 database readiness
 exchange schema migration
 audit outbox insert helper
+TaifaID readiness client
+TaifaID actor-context resolution client
+TaifaID organization-capability client
 ```
-
-vvvv
